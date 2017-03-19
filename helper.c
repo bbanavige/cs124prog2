@@ -9,9 +9,17 @@ Header file with functions for strassen.c
 #include <time.h>
 #include <math.h>
 
-void con(int** A, int** B, int n){
-	int** C = malloc(n * sizeof(int*));
+/* conventional matrix multiplication
 
+INPUT: 	A - n x n matrix
+		B - n x n matrix
+		C - n x n matrix (C = A * B)
+		n - dimention of A and B
+
+OUTPUT:	nothing, but changes C to be A * B by reference
+
+*/
+void con(int** A, int** B, int** C, int n){
 	for (int i = 0; i < n; i++){
 		C[i] = malloc(n * sizeof(int));
 	}

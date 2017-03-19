@@ -12,7 +12,7 @@ function definitions for header file
 #include <time.h>
 #include <math.h>
 
-// float prim(float** W, int n);
+// conventional matrix multiplication
 void con(int** A, int** B, int n);
 
 #endif // HELPER_H

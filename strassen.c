@@ -24,12 +24,14 @@ int main(int argc, char* argv[]){
 
 	int** A = malloc(n * sizeof(int*));
 	int** B = malloc(n * sizeof(int*));
+	int** C = malloc(n * sizeof(int*));
 
 	for (int i = 0; i < n; i++){
 		A[i] = malloc(n * sizeof(int));
 		B[i] = malloc(n * sizeof(int));
+		C[i] = malloc(n * sizeof(int));
 	}
 
-	
+
 
 }
