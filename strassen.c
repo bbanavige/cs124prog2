@@ -44,9 +44,13 @@ int main(int argc, char* argv[]) {
     // import from data file
     import(n, (int (*)[n]) A, (int (*)[n]) B, inputfile);
 
-    // conventional mult
+    //
     strassen(n, (int (*)[n]) A, (int (*)[n]) B, (int (*)[n]) C);
-    print_diag(n, (int (*)[n]) C);
+
+    // only print results if TFs are running with flag 0 
+    // for correctness testing
+    if (!flag)
+        print_diag(n, (int (*)[n]) C);
 }   
 
 // functions
