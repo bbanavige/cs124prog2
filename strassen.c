@@ -18,6 +18,10 @@ void print_mat(int n, int A[n][n]);
 void print_diag(int n, int A[n][n]);
 void sim(int n, int type, char* outfile);
 
+// Globlas
+int odd_cutoff = 38;
+int even_cutoff = 16;
+
 // Main Function
 int main(int argc, char* argv[]) {
     if (argc != 4) {
@@ -25,13 +29,20 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
+    int flag = atoi(argv[1]);
     int n = atoi(argv[2]);
     char* inputfile = argv[3];
-    
+
+    // reset the cutoffs is the flag is not 0
+    if (flag) 
+        odd_cutoff = even_cutoff = flag;
+
+    // set up arrays    
     int* A = malloc(sizeof(int) * n * n);
     int* B = malloc(sizeof(int) * n * n);
     int* C = malloc(sizeof(int) * n * n);
 
+    // import from data file
     import(n, (int (*)[n]) A, (int (*)[n]) B, inputfile);
 
     // conventional mult
@@ -87,11 +98,11 @@ Same input and Output as the traditional
 void strassen(int n, int A[n][n], int B[n][n], int C[n][n]) {
     bool odd = n % 2;
     // BASE CASE
-    if (!odd && n < 16) {
+    if (!odd && n < even_cutoff) {
         con(n, A, B, C); 
         return;
     }
-    else if (n < 38) {
+    else if (n < odd_cutoff) {
         con(n, A, B, C);
         return;
     }
