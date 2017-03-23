@@ -87,34 +87,39 @@ Same input and Output as the traditional
 
 void strassen(int n, int A[n][n], int B[n][n], int C[n][n]) {
     // BASE CASE
-    if (n == 1)
+    if (n == 1) {
         C[0][0] = A[0][0] * B[0][0];
+        return;
+    }
 
     // create splits
     bool odd = n % 2;
-    int newsize = odd ? n / 2 : n / 2 + 1;
+    int newsize = odd ? n / 2 + 1 : n / 2;
     int a11[newsize][newsize], a12[newsize][newsize], a21[newsize][newsize],
         a22[newsize][newsize], b11[newsize][newsize], b12[newsize][newsize],
         b21[newsize][newsize], b22[newsize][newsize];
 
+    // upper left quadrant
     for (int i = 0; i < newsize; i++)
         for (int k = 0; k < newsize; k++) {
             a11[i][k] = A[i][k];
             b11[i][k] = B[i][k];
         }
-
+    
+    // upper right quadrant
     for (int i = 0; i < newsize; i++)                                           
         for (int k = newsize; k < n; k++) {                                     
-            a21[i][k-newsize] = A[i][k];                                                
-            b21[i][k-newsize] = B[i][k];                                                
+            a12[i][k-newsize] = A[i][k];                                                
+            b12[i][k-newsize] = B[i][k];                                                
         } 
-
+    // lower left quadrant
     for (int i = newsize; i < n; i++)                                           
         for (int k = 0; k < newsize; k++) {                                     
-            a12[i-newsize][k] = A[i][k];                                                
-            b12[i-newsize][k] = B[i][k];                                                
+            a21[i-newsize][k] = A[i][k];                                                
+            b21[i-newsize][k] = B[i][k];                                                
         } 
 
+    // lower right quadrant
     for (int i = newsize; i < n; i++)
         for (int k = newsize; k < n; k++) {
             a22[i-newsize][k-newsize] = A[i][k];                                                
@@ -122,16 +127,16 @@ void strassen(int n, int A[n][n], int B[n][n], int C[n][n]) {
         }
 
     // pad if necessary 
-    if (!odd) {
+    if (odd) {
         for (int i = 0; i < newsize; i++) {
-            a12[newsize-1][i] = 0;
-            b12[newsize-1][i] = 0;
+            a21[newsize-1][i] = 0;
+            b21[newsize-1][i] = 0;
             a22[newsize-1][i] = 0;
             b22[newsize-1][i] = 0;
             a22[i][newsize-1] = 0;
             b22[i][newsize-1] = 0;
-            a21[i][newsize-1] = 0;
-            b21[i][newsize-1] = 0;
+            a12[i][newsize-1] = 0;
+            b12[i][newsize-1] = 0;
         }
     } 
 
@@ -184,11 +189,11 @@ void strassen(int n, int A[n][n], int B[n][n], int C[n][n]) {
 
     for (int i = 0; i < newsize; i++)
         for (int j = newsize; j < n; j++)
-            C[i][j] = a21[i][j-newsize];
+            C[i][j] = a12[i][j-newsize];
 
     for (int i = newsize; i < n; i++)
         for (int j = 0; j < newsize; j++)
-            C[i][j] = a12[i-newsize][j];
+            C[i][j] = a21[i-newsize][j];
         
     for (int i = newsize; i < n; i++)
         for (int j = newsize; j < n; j++)
