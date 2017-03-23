@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <time.h>
 
 // Prototypes
 void con(int n, int A[n][n], int B[n][n], int C[n][n]);
@@ -24,7 +25,7 @@ int even_cutoff = 16;
 // Main Function
 int main(int argc, char* argv[]) {
     if (argc != 4) {
-        printf("Usage: ./strassen 0 dimension inputfile");
+        printf("Usage: ./strassen flag dimension inputfile\n");
         return -1;
     }
 
@@ -44,8 +45,14 @@ int main(int argc, char* argv[]) {
     // import from data file
     import(n, (int (*)[n]) A, (int (*)[n]) B, inputfile);
 
-    //
+    time_t tic = clock();
     strassen(n, (int (*)[n]) A, (int (*)[n]) B, (int (*)[n]) C);
+    time_t toc = clock();
+
+    if (flag){
+    	printf("%f\n", (float) (toc - tic) / CLOCKS_PER_SEC);
+    }
+    
 
     // only print results if TFs are running with flag 0 
     // for correctness testing
