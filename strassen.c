@@ -16,7 +16,6 @@ void strassen(int n, int A[n][n], int B[n][n], int C[n][n]);
 void import(int n, int A[n][n], int B[n][n], char* infile);
 void print_mat(int n, int A[n][n]);
 void print_diag(int n, int A[n][n]);
-void sim(int n, int type, char* outfile);
 
 // Globlas
 int odd_cutoff = 38;
@@ -107,7 +106,7 @@ void strassen(int n, int A[n][n], int B[n][n], int C[n][n]) {
         return;
     }
 
-    // create splits
+    // create splits --> use malloc so we don't overflow the stack
     int newsize = odd ? n / 2 + 1 : n / 2;
     int* a11 = malloc(sizeof(int) * newsize * newsize);
     int* a12 = malloc(sizeof(int) * newsize * newsize); 
@@ -118,32 +117,41 @@ void strassen(int n, int A[n][n], int B[n][n], int C[n][n]) {
     int* b21 = malloc(sizeof(int) * newsize * newsize);
     int* b12 = malloc(sizeof(int) * newsize * newsize);
     
+    // Note: everything is in a different for loop to improve cache performance
     // upper left quadrant
     for (int i = 0; i < newsize; i++)
-        for (int k = 0; k < newsize; k++) {
+        for (int k = 0; k < newsize; k++) 
             a11[i*newsize + k] = A[i][k];
-            b11[i*newsize + k] = B[i][k];
-        }
+    for (int i = 0; i < newsize; i++)
+        for (int k = 0; k < newsize; k++) 
+            b11[i*newsize + k] = A[i][k];
     
     // upper right quadrant
-    for (int i = 0; i < newsize; i++)                                           
-        for (int k = newsize; k < n; k++) {                                     
+    for (int i = 0; i < newsize; i++)
+        for (int k = newsize; k < n; k++)                                      
             a12[i*newsize + (k-newsize)] = A[i][k];                                                
-            b12[i*newsize + (k-newsize)] = B[i][k];                                                
-        } 
-    // lower left quadrant
-    for (int i = newsize; i < n; i++)                                           
-        for (int k = 0; k < newsize; k++) {                                     
-            a21[(i-newsize)*newsize + k] = A[i][k];                                                
-            b21[(i-newsize)*newsize + k] = B[i][k];                                                
-        } 
+    
+    for (int i = 0; i < newsize; i++)
+        for (int k = newsize; k < n; k++)                                      
+            a12[i*newsize + (k-newsize)] = A[i][k];
 
+    // lower left quadrant
+    for (int i = newsize; i < n; i++)
+        for (int k = 0; k < newsize; k++)
+            a21[(i-newsize)*newsize + k] = A[i][k];
+   
+    for (int i = newsize; i < n; i++)
+        for (int k = 0; k < newsize; k++)
+            a21[(i-newsize)*newsize + k] = A[i][k]; 
+  
     // lower right quadrant
     for (int i = newsize; i < n; i++)
-        for (int k = newsize; k < n; k++) {
-            a22[(i-newsize)*newsize + (k-newsize)] = A[i][k];                                                
-            b22[(i-newsize)*newsize + (k-newsize)] = B[i][k];                                                
-        }
+        for (int k = newsize; k < n; k++) 
+            a22[(i-newsize)*newsize + (k-newsize)] = A[i][k];
+
+    for (int i = newsize; i < n; i++)
+        for (int k = newsize; k < n; k++) 
+            a22[(i-newsize)*newsize + (k-newsize)] = A[i][k];
 
     // pad if necessary 
     if (odd) {
@@ -170,7 +178,7 @@ void strassen(int n, int A[n][n], int B[n][n], int C[n][n]) {
     int* m6 = malloc(sizeof(int) * newsize * newsize);
     int* m7 = malloc(sizeof(int) * newsize * newsize);
 
-    // Note the pointer conversions, for ease later on --> in C there is no cost for typecasting
+    // Note: the pointer conversions are for ease later on --> in C there is no cost for typecasting
     mat_add(newsize, (int (*)[newsize]) a11, (int (*)[newsize]) a22, (int (*)[newsize]) temp1);
     mat_add(newsize, (int (*)[newsize]) b11, (int (*)[newsize]) b22, (int (*)[newsize]) temp2);
     strassen(newsize, (int (*)[newsize]) temp1, (int (*)[newsize]) temp2, (int (*)[newsize]) m1);
@@ -258,39 +266,6 @@ void import(int n, int A[n][n], int B[n][n], char* infile) {
     	}
     }
     fclose(file);
-}
-
-/* imports from file
-
-INPUT: 	A - n x n matrix to store data
-		B - n x n matrix to store data
-		n - dimention of A and B
-		type - type of random simulation
-
-OUTPUT:	nothing, but changes A and B by reference
-
-*/
-void sim(int n, int type, char* outfile) {
-	FILE* file = fopen(outfile, "w+");
-
-	char* c;
-	int a;
-
-	// randomly generate A
-	for (int i = 0; i < n; i++) {
-		for (int j = 0; j < n; j++) {
-			fprintf(file, "%d\n", rand() % 2);
-		}
-	}
-
-	// randomly generate B
-	for (int i = 0; i < n; i++ ){
-		for (int j = 0; j < n; j++) {
-			fprintf(file, "%d\n", rand() % 2);
-		}
-	}
-
-	fclose(file);
 }
 
 // print matrix A, which is n x n
