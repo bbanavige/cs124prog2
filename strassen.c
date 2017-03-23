@@ -17,6 +17,7 @@ void mat_sub(int n, int a[n][n], int b[n][n], int c[n][n]);
 void strassen(int n, int A[n][n], int B[n][n], int C[n][n]);
 void import(int n, int A[n][n], int B[n][n], char* infile);
 void print_mat(int n, int A[n][n]);
+void print_diag(int n, int A[n][n]);
 void sim(int n, int type, char* outfile);
 
 // Main Function
@@ -34,10 +35,8 @@ int main(int argc, char* argv[]) {
     import(n, A, B, inputfile);
 
     // conventional mult
-    con(n,A,B,C);
-    print_mat(n,C);
     strassen(n,A,B,C);
-    print_mat(n,C);
+    print_diag(n,C);
 }   
 
 // functions
@@ -86,14 +85,18 @@ Same input and Output as the traditional
 */
 
 void strassen(int n, int A[n][n], int B[n][n], int C[n][n]) {
+    bool odd = n % 2;
     // BASE CASE
-    if (n == 1) {
-        C[0][0] = A[0][0] * B[0][0];
+    if (!odd && n < 16) {
+        con(n, A, B, C); 
+        return;
+    }
+    else if (n < 16) {
+        con(n, A, B, C);
         return;
     }
 
     // create splits
-    bool odd = n % 2;
     int newsize = odd ? n / 2 + 1 : n / 2;
     int a11[newsize][newsize], a12[newsize][newsize], a21[newsize][newsize],
         a22[newsize][newsize], b11[newsize][newsize], b12[newsize][newsize],
@@ -210,7 +213,7 @@ INPUT: 	A - n x n matrix to store data
 OUTPUT:	nothing, but changes A and B by reference
 
 */
-void import(int n, int A[n][n], int B[n][n], char* infile){
+void import(int n, int A[n][n], int B[n][n], char* infile) {
 	FILE *file = fopen(infile, "r");
     int i = 0;
     int num;
@@ -239,22 +242,22 @@ INPUT: 	A - n x n matrix to store data
 OUTPUT:	nothing, but changes A and B by reference
 
 */
-void sim(int n, int type, char* outfile){
+void sim(int n, int type, char* outfile) {
 	FILE* file = fopen(outfile, "w+");
 
 	char* c;
 	int a;
 
 	// randomly generate A
-	for (int i = 0; i < n; i++){
-		for (int j = 0; j < n; j++){
+	for (int i = 0; i < n; i++) {
+		for (int j = 0; j < n; j++) {
 			fprintf(file, "%d\n", rand() % 2);
 		}
 	}
 
 	// randomly generate B
-	for (int i = 0; i < n; i++){
-		for (int j = 0; j < n; j++){
+	for (int i = 0; i < n; i++ ){
+		for (int j = 0; j < n; j++) {
 			fprintf(file, "%d\n", rand() % 2);
 		}
 	}
@@ -263,13 +266,19 @@ void sim(int n, int type, char* outfile){
 }
 
 // print matrix A, which is n x n
-void print_mat(int n, int A[n][n]){
-	for (int i = 0; i < n; i++){
-		for (int j = 0; j < n; j++){
+void print_mat(int n, int A[n][n]) {
+	for (int i = 0; i < n; i++) {
+		for (int j = 0; j < n; j++) {
 			printf("%i\t", A[i][j]);
 		}
 		printf("\n");
 	}
 	printf("\n");
+}
+
+// print values along the diagonals of matrix A
+void print_diag(int n, int A[n][n]) {
+    for (int i = 0; i < n; i++)
+        printf("%d\n", A[i][i]);
 }
 
