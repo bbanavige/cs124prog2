@@ -6,8 +6,6 @@
 // Includes
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
-#include <math.h>
 #include <stdbool.h>
 
 // Prototypes
@@ -30,13 +28,15 @@ int main(int argc, char* argv[]) {
     int n = atoi(argv[2]);
     char* inputfile = argv[3];
     
-    int A[n][n], B[n][n], C[n][n];
+    int* A = malloc(sizeof(int) * n * n);
+    int* B = malloc(sizeof(int) * n * n);
+    int* C = malloc(sizeof(int) * n * n);
 
-    import(n, A, B, inputfile);
+    import(n, (int (*)[n]) A, (int (*)[n]) B, inputfile);
 
     // conventional mult
-    strassen(n,A,B,C);
-    print_diag(n,C);
+    strassen(n, (int (*)[n]) A, (int (*)[n]) B, (int (*)[n]) C);
+    print_diag(n, (int (*)[n]) C);
 }   
 
 // functions
@@ -107,11 +107,6 @@ void strassen(int n, int A[n][n], int B[n][n], int C[n][n]) {
     int* b21 = malloc(sizeof(int) * newsize * newsize);
     int* b12 = malloc(sizeof(int) * newsize * newsize);
     
-    /**
-    int a11[newsize][newsize], a12[newsize][newsize], a21[newsize][newsize],
-        a22[newsize][newsize], b11[newsize][newsize], b12[newsize][newsize],
-        b21[newsize][newsize], b22[newsize][newsize];
-    **/
     // upper left quadrant
     for (int i = 0; i < newsize; i++)
         for (int k = 0; k < newsize; k++) {
@@ -164,11 +159,6 @@ void strassen(int n, int A[n][n], int B[n][n], int C[n][n]) {
     int* m6 = malloc(sizeof(int) * newsize * newsize);
     int* m7 = malloc(sizeof(int) * newsize * newsize);
 
-    /**
-    int temp1[newsize][newsize], temp2[newsize][newsize], m1[newsize][newsize],
-        m2[newsize][newsize], m3[newsize][newsize], m4[newsize][newsize],
-        m5[newsize][newsize], m6[newsize][newsize], m7[newsize][newsize];
-    **/
     // Note the pointer conversions, for ease later on --> in C there is no cost for typecasting
     mat_add(newsize, (int (*)[newsize]) a11, (int (*)[newsize]) a22, (int (*)[newsize]) temp1);
     mat_add(newsize, (int (*)[newsize]) b11, (int (*)[newsize]) b22, (int (*)[newsize]) temp2);
@@ -225,23 +215,9 @@ void strassen(int n, int A[n][n], int B[n][n], int C[n][n]) {
             C[i][j] = a22[(i-newsize)*newsize + (j-newsize)];
 
     // memory cleanup
-    free(a11);
-    free(a12);
-    free(a21);
-    free(a22);
-    free(b11);
-    free(b12);
-    free(b21);
-    free(b22);
-    free(temp1);
-    free(temp2);
-    free(m1);
-    free(m2);
-    free(m3);
-    free(m4);
-    free(m5);
-    free(m6);
-    free(m7);
+    free(a11); free(a12); free(a21); free(a22); free(b11); free(b12); free(b21);
+    free(b22); free(temp1); free(temp2); free(m1); free(m2); free(m3); free(m4);
+    free(m5); free(m6); free(m7);
 }
 
 /* imports from file
