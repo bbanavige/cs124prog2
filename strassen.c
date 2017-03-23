@@ -91,116 +91,157 @@ void strassen(int n, int A[n][n], int B[n][n], int C[n][n]) {
         con(n, A, B, C); 
         return;
     }
-    else if (n < 16) {
+    else if (n < 38) {
         con(n, A, B, C);
         return;
     }
 
     // create splits
     int newsize = odd ? n / 2 + 1 : n / 2;
+    int* a11 = malloc(sizeof(int) * newsize * newsize);
+    int* a12 = malloc(sizeof(int) * newsize * newsize); 
+    int* a21 = malloc(sizeof(int) * newsize * newsize);
+    int* a22 = malloc(sizeof(int) * newsize * newsize);
+    int* b11 = malloc(sizeof(int) * newsize * newsize);
+    int* b22 = malloc(sizeof(int) * newsize * newsize);
+    int* b21 = malloc(sizeof(int) * newsize * newsize);
+    int* b12 = malloc(sizeof(int) * newsize * newsize);
+    
+    /**
     int a11[newsize][newsize], a12[newsize][newsize], a21[newsize][newsize],
         a22[newsize][newsize], b11[newsize][newsize], b12[newsize][newsize],
         b21[newsize][newsize], b22[newsize][newsize];
-
+    **/
     // upper left quadrant
     for (int i = 0; i < newsize; i++)
         for (int k = 0; k < newsize; k++) {
-            a11[i][k] = A[i][k];
-            b11[i][k] = B[i][k];
+            a11[i*newsize + k] = A[i][k];
+            b11[i*newsize + k] = B[i][k];
         }
     
     // upper right quadrant
     for (int i = 0; i < newsize; i++)                                           
         for (int k = newsize; k < n; k++) {                                     
-            a12[i][k-newsize] = A[i][k];                                                
-            b12[i][k-newsize] = B[i][k];                                                
+            a12[i*newsize + (k-newsize)] = A[i][k];                                                
+            b12[i*newsize + (k-newsize)] = B[i][k];                                                
         } 
     // lower left quadrant
     for (int i = newsize; i < n; i++)                                           
         for (int k = 0; k < newsize; k++) {                                     
-            a21[i-newsize][k] = A[i][k];                                                
-            b21[i-newsize][k] = B[i][k];                                                
+            a21[(i-newsize)*newsize + k] = A[i][k];                                                
+            b21[(i-newsize)*newsize + k] = B[i][k];                                                
         } 
 
     // lower right quadrant
     for (int i = newsize; i < n; i++)
         for (int k = newsize; k < n; k++) {
-            a22[i-newsize][k-newsize] = A[i][k];                                                
-            b22[i-newsize][k-newsize] = B[i][k];                                                
+            a22[(i-newsize)*newsize + (k-newsize)] = A[i][k];                                                
+            b22[(i-newsize)*newsize + (k-newsize)] = B[i][k];                                                
         }
 
     // pad if necessary 
     if (odd) {
         for (int i = 0; i < newsize; i++) {
-            a21[newsize-1][i] = 0;
-            b21[newsize-1][i] = 0;
-            a22[newsize-1][i] = 0;
-            b22[newsize-1][i] = 0;
-            a22[i][newsize-1] = 0;
-            b22[i][newsize-1] = 0;
-            a12[i][newsize-1] = 0;
-            b12[i][newsize-1] = 0;
+            a21[(newsize-1)*newsize + i] = 0;
+            b21[(newsize-1)*newsize + i] = 0;
+            a22[(newsize-1)*newsize + i] = 0;
+            b22[(newsize-1)*newsize + i] = 0;
+            a22[i*newsize + newsize-1] = 0;
+            b22[i*newsize + newsize-1] = 0;
+            a12[i*newsize + newsize-1] = 0;
+            b12[i*newsize + newsize-1] = 0;
         }
     } 
 
     // build m1 through m7
+    int* temp1 = malloc(sizeof(int) * newsize * newsize);
+    int* temp2 = malloc(sizeof(int) * newsize * newsize); 
+    int* m1 = malloc(sizeof(int) * newsize * newsize);
+    int* m2 = malloc(sizeof(int) * newsize * newsize);
+    int* m3 = malloc(sizeof(int) * newsize * newsize);
+    int* m4 = malloc(sizeof(int) * newsize * newsize);
+    int* m5 = malloc(sizeof(int) * newsize * newsize);
+    int* m6 = malloc(sizeof(int) * newsize * newsize);
+    int* m7 = malloc(sizeof(int) * newsize * newsize);
+
+    /**
     int temp1[newsize][newsize], temp2[newsize][newsize], m1[newsize][newsize],
         m2[newsize][newsize], m3[newsize][newsize], m4[newsize][newsize],
         m5[newsize][newsize], m6[newsize][newsize], m7[newsize][newsize];
+    **/
+    // Note the pointer conversions, for ease later on --> in C there is no cost for typecasting
+    mat_add(newsize, (int (*)[newsize]) a11, (int (*)[newsize]) a22, (int (*)[newsize]) temp1);
+    mat_add(newsize, (int (*)[newsize]) b11, (int (*)[newsize]) b22, (int (*)[newsize]) temp2);
+    strassen(newsize, (int (*)[newsize]) temp1, (int (*)[newsize]) temp2, (int (*)[newsize]) m1);
+
+    mat_add(newsize, (int (*)[newsize]) a21, (int (*)[newsize]) a22, (int (*)[newsize]) temp1);
+    strassen(newsize, (int (*)[newsize]) temp1, (int (*)[newsize]) b11, (int (*)[newsize]) m2);
     
-    mat_add(newsize, a11, a22, temp1);
-    mat_add(newsize, b11, b22, temp2);
-    strassen(newsize, temp1, temp2, m1);
+    mat_sub(newsize, (int (*)[newsize]) b12, (int (*)[newsize]) b22, (int (*)[newsize]) temp1);
+    strassen(newsize, (int (*)[newsize]) a11, (int (*)[newsize]) temp1, (int (*)[newsize]) m3);
 
-    mat_add(newsize, a21, a22, temp1);
-    strassen(newsize, temp1, b11, m2);
-    
-    mat_sub(newsize, b12, b22, temp1);
-    strassen(newsize, a11, temp1, m3);
+    mat_sub(newsize, (int (*)[newsize]) b21, (int (*)[newsize]) b11, (int (*)[newsize]) temp1);
+    strassen(newsize, (int (*)[newsize]) a22, (int (*)[newsize]) temp1, (int (*)[newsize]) m4);
 
-    mat_sub(newsize, b21, b11, temp1);
-    strassen(newsize, a22, temp1, m4);
+    mat_add(newsize, (int (*)[newsize]) a11, (int (*)[newsize]) a12, (int (*)[newsize]) temp1);
+    strassen(newsize, (int (*)[newsize]) temp1, (int (*)[newsize]) b22, (int (*)[newsize]) m5);
 
-    mat_add(newsize, a11, a12, temp1);
-    strassen(newsize, temp1, b22, m5);
+    mat_sub(newsize, (int (*)[newsize]) a21, (int (*)[newsize]) a11, (int (*)[newsize]) temp1);
+    mat_add(newsize, (int (*)[newsize]) b11, (int (*)[newsize]) b12, (int (*)[newsize]) temp2);
+    strassen(newsize, (int (*)[newsize]) temp1, (int (*)[newsize]) temp2, (int (*)[newsize]) m6);
 
-    mat_sub(newsize, a21, a11, temp1);
-    mat_add(newsize, b11, b12, temp2);
-    strassen(newsize, temp1, temp2, m6);
-
-    mat_sub(newsize, a12, a22, temp1);
-    mat_add(newsize, b21, b22, temp2);
-    strassen(newsize, temp1, temp2, m7);
+    mat_sub(newsize, (int (*)[newsize]) a12, (int (*)[newsize]) a22, (int (*)[newsize]) temp1);
+    mat_add(newsize, (int (*)[newsize]) b21, (int (*)[newsize]) b22, (int (*)[newsize]) temp2);
+    strassen(newsize, (int (*)[newsize]) temp1, (int (*)[newsize]) temp2, (int (*)[newsize]) m7);
     
     // create c set --> be clever and reuse the set of matrices from splitting a
-    mat_sub(newsize, m4, m5, temp1);
-    mat_add(newsize, m1, m7, temp2);
-    mat_add(newsize, temp1, temp2, a11);
+    mat_sub(newsize, (int (*)[newsize]) m4, (int (*)[newsize]) m5, (int (*)[newsize]) temp1);
+    mat_add(newsize, (int (*)[newsize]) m1, (int (*)[newsize]) m7, (int (*)[newsize]) temp2);
+    mat_add(newsize, (int (*)[newsize]) temp1, (int (*)[newsize]) temp2, (int (*)[newsize]) a11);
     
-    mat_add(newsize, m3, m5, a12);
+    mat_add(newsize, (int (*)[newsize]) m3, (int (*)[newsize]) m5, (int (*)[newsize]) a12);
 
-    mat_add(newsize, m2, m4, a21);
+    mat_add(newsize, (int (*)[newsize]) m2, (int (*)[newsize]) m4, (int (*)[newsize]) a21);
 
-    mat_sub(newsize, m1, m2, temp1);
-    mat_add(newsize, m3, m6, temp2);
-    mat_add(newsize, temp1, temp2, a22);
+    mat_sub(newsize, (int (*)[newsize]) m1, (int (*)[newsize]) m2, (int (*)[newsize]) temp1);
+    mat_add(newsize, (int (*)[newsize]) m3, (int (*)[newsize]) m6, (int (*)[newsize]) temp2);
+    mat_add(newsize, (int (*)[newsize]) temp1, (int (*)[newsize]) temp2, (int (*)[newsize]) a22);
     
     // merge back together
     for (int i = 0; i < newsize; i++)
         for (int j = 0; j < newsize; j++)
-            C[i][j] = a11[i][j];
+            C[i][j] = a11[i*newsize + j];
 
     for (int i = 0; i < newsize; i++)
         for (int j = newsize; j < n; j++)
-            C[i][j] = a12[i][j-newsize];
+            C[i][j] = a12[i*newsize + (j-newsize)];
 
     for (int i = newsize; i < n; i++)
         for (int j = 0; j < newsize; j++)
-            C[i][j] = a21[i-newsize][j];
+            C[i][j] = a21[(i-newsize)*newsize + j];
         
     for (int i = newsize; i < n; i++)
         for (int j = newsize; j < n; j++)
-            C[i][j] = a22[i-newsize][j-newsize];
+            C[i][j] = a22[(i-newsize)*newsize + (j-newsize)];
+
+    // memory cleanup
+    free(a11);
+    free(a12);
+    free(a21);
+    free(a22);
+    free(b11);
+    free(b12);
+    free(b21);
+    free(b22);
+    free(temp1);
+    free(temp2);
+    free(m1);
+    free(m2);
+    free(m3);
+    free(m4);
+    free(m5);
+    free(m6);
+    free(m7);
 }
 
 /* imports from file
