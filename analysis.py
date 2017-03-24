@@ -1,3 +1,7 @@
+#  * CS 124 Programming Assignment 2
+#  * 70940507 and 30978137
+
+
 import matplotlib.pyplot as plt
 import numpy as np
 import subprocess
